@@ -33,12 +33,6 @@ settings:
       required: true
       regex: ^[a-z][a-z0-9-]{1,30}$
       regexText: lowercase letters, digits and dashes, 2-31 characters
-    - name: region
-      caption: Region
-      type: regionlist
-      required: true
-      filter:
-        isActive: true
     - name: storageCount
       caption: Storage nodes
       type: spinner
@@ -61,9 +55,11 @@ settings:
     - type: displayfield
       markup: "The first region env is the primary - it runs the control plane and the HTTPS entry point (nginx). 1 node = no local redundancy; 2+ nodes = 2 copies on different nodes."
 
-# TODO(sfs): verify live that a root-level region places the env in the chosen region
-# (the install dialog may also show its own region selector).
-region: ${settings.region}
+# No root-level `region:` here. With a root region the dashboard hides its own region
+# selector and checks that value before the form is filled in, so a settings
+# placeholder is never a real region: the Install button stays disabled with "installation is not
+# allowed in the current regions" (verified in the dashboard source, 2026-09-30). The
+# dashboard's own region selector places the env; ops.js reads the region from the env.
 # Built-in SSL on the env domain: the platform SLB terminates HTTPS in front of nginx.
 ssl: true
 
@@ -90,7 +86,6 @@ onInstall:
       envDomain: ${env.domain}
       basePath: ${globals.base_path}
       clusterName: ${settings.clusterName}
-      region: ${settings.region}
   - install:
       jps: ${baseUrl}/addons/cluster.jps?_r=${fn.random}
       envName: ${env.envName}
